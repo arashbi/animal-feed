@@ -7,16 +7,20 @@ local scene = composer.newScene()
 
 -- include Corona's "physics" library
 local physics = require "physics"
-physics.start(); physics.pause()
-physics.setDrawMode("hybrid")
---------------------------------------------
 
+physics.start(); physics.pause()
+--physics.setDrawMode("hybrid")
+--------------------------------------------
+physics.setGravity(0,30)
 -- forward declarations and other locals
 local screenW, screenH, halfW = display.contentWidth, display.contentHeight, display.contentWidth*0.5
+local dragStart,dragEnd
+local fruitJoints
 
  function createSky()
-	local sky = display.newImage("sky.png", screenW,64)
-	sky.x = 0
+	local sky = display.newImage("sky.jpg", screenW,64)
+	physics.addBody( sky, "static", {density=0, friction=0.1, bounce=0  } )
+	sky.x = screenW/2
 	sky.y = 0
 	return sky
 end
@@ -35,21 +39,24 @@ function scene:create( event )
 	background.anchorX = 0
 	background.anchorY = 0
 	background:setFillColor(0,1,0)
-	
 	-- make a crate (off-screen), position it, and rotate slightly
 	local fruit = display.newImage( "blue.png", 74, 74 )
 	fruit.x, fruit.y = 160, 40
+	fruit.isFruit = true;
 	fruit.rotation = 15
 	local sky = createSky()
 	-- add physics to the crate
-	physics.addBody( fruit, { density=1.0, friction=0.3, bounce=0.3, radius = 34 } )
-	
+	physics.addBody( fruit, { density=5.0, friction=0.0, bounce=0.3, radius = 34 } )
+	print("Fruit physics " , fruitPhysics)
+	local pusk = display.newCircle( fruit.x, fruit.y -10 , 2 )
+	physics.addBody( pusk, "static", {density=0, friction=0.3, bounce=b, shape = {2,2,fruit.x, fruit.y -10} } )
+	puskJoint = physics.newJoint( "pivot", pusk,fruit, fruit.x ,fruit.y-10 )
 	-- create a grass object and add physics (with custom shape)
 	local grass = display.newImageRect( "grass.png", screenW, 80)
 	grass.anchorX = 0
 	grass.anchorY = 1
 	grass.x, grass.y = 0, display.contentHeight
-	
+	grass.name = "grass"
 	-- define a shape that's slightly shorter than image bounds (set draw mode to "hybrid" or "debug" to see)
 	local grassShape = { -halfW,-34, halfW,-34, halfW,34, -halfW,34 }
 	physics.addBody( grass, "static", { friction=0.3, shape=grassShape } )
@@ -106,14 +113,53 @@ function scene:destroy( event )
 	physics = nil
 end
 
+
+------
+function touch(event)
+	local phase = event.phase
+	if "began" == phase then
+		print("touch begin")
+		dragStart = {}
+		dragStart.x = event.x
+		dragStart.y = event.y
+	end
+	if "ended" == phase then
+		print("touch end phase")
+		if dragStart then
+			dragEnd = {}
+			dragEnd.x = event.x
+			dragEnd.y = event.y
+		end
+	end
+end
 ---------------------------------------------------------------------------------
 
+function enterFrame(event)
+	if dragStart and dragEnd then
+		print "casting a ray"
+		local hits = physics.rayCast( dragStart.x,dragStart.y, dragEnd.x,dragEnd.y)
+		if hits then
+			for i, v in ipairs(hits) do
+				print ("hit ", i ,v.object.isFruit)
+				for key,value in pairs(v) do print(key,value) end
+				if v.object.isFruit then
+					puskJoint:removeSelf()	
+					print ( 'fruit touched')
+				end
+			end
+		end
+		dragStart = nil
+		dragEnd = nil
+	end
+end
+print("setting up event handlers")
 -- Listener setup
 scene:addEventListener( "create", scene )
 scene:addEventListener( "show", scene )
 scene:addEventListener( "hide", scene )
 scene:addEventListener( "destroy", scene )
-
+Runtime:addEventListener( "touch", touch )
+Runtime:addEventListener("enterFrame", enterFrame)
 -----------------------------------------------------------------------------------------
 
 return scene
