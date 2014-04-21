@@ -4,18 +4,19 @@
 
 local composer = require( "composer" )
 local scene = composer.newScene()
-
+local fruits = require("fruit")
+local animals = require("animals")
 -- include Corona's "physics" library
-local physics = require "physics"
+local physics = require ("physics")
 
 physics.start(); physics.pause()
---physics.setDrawMode("hybrid")
+-- physics.setDrawMode("hybrid")
 --------------------------------------------
 physics.setGravity(0,30)
 -- forward declarations and other locals
 local screenW, screenH, halfW = display.contentWidth, display.contentHeight, display.contentWidth*0.5
 local dragStart,dragEnd
-local fruitJoints
+local pusks
 
  function createSky()
 	local sky = display.newImage("sky.jpg", screenW,64)
@@ -40,17 +41,7 @@ function scene:create( event )
 	background.anchorY = 0
 	background:setFillColor(0,1,0)
 	-- make a crate (off-screen), position it, and rotate slightly
-	local fruit = display.newImage( "blue.png", 74, 74 )
-	fruit.x, fruit.y = 160, 40
-	fruit.isFruit = true;
-	fruit.rotation = 15
 	local sky = createSky()
-	-- add physics to the crate
-	physics.addBody( fruit, { density=5.0, friction=0.0, bounce=0.3, radius = 34 } )
-	print("Fruit physics " , fruitPhysics)
-	local pusk = display.newCircle( fruit.x, fruit.y -10 , 2 )
-	physics.addBody( pusk, "static", {density=0, friction=0.3, bounce=b, shape = {2,2,fruit.x, fruit.y -10} } )
-	puskJoint = physics.newJoint( "pivot", pusk,fruit, fruit.x ,fruit.y-10 )
 	-- create a grass object and add physics (with custom shape)
 	local grass = display.newImageRect( "grass.png", screenW, 80)
 	grass.anchorX = 0
@@ -58,14 +49,14 @@ function scene:create( event )
 	grass.x, grass.y = 0, display.contentHeight
 	grass.name = "grass"
 	-- define a shape that's slightly shorter than image bounds (set draw mode to "hybrid" or "debug" to see)
-	local grassShape = { -halfW,-34, halfW,-34, halfW,34, -halfW,34 }
+	local grassShape = { -halfW,-5, halfW,-5, halfW,34, -halfW,34 }
 	physics.addBody( grass, "static", { friction=0.3, shape=grassShape } )
-	
+	animals.createAnimal()
 	-- all display objects must be inserted into group
 	sceneGroup:insert( background )
 	sceneGroup:insert(sky)
 	sceneGroup:insert( grass)
-	sceneGroup:insert( fruit )
+	
 end
 
 
@@ -134,7 +125,9 @@ function touch(event)
 end
 ---------------------------------------------------------------------------------
 
-function enterFrame(event)
+function scene:enterFrame(event)
+	fruits.refreshScene(self.view)
+	animals.update(self.view)
 	if dragStart and dragEnd then
 		print "casting a ray"
 		local hits = physics.rayCast( dragStart.x,dragStart.y, dragEnd.x,dragEnd.y)
@@ -143,7 +136,7 @@ function enterFrame(event)
 				print ("hit ", i ,v.object.isFruit)
 				for key,value in pairs(v) do print(key,value) end
 				if v.object.isFruit then
-					puskJoint:removeSelf()	
+					fruits.removePusk(v.object)	
 					print ( 'fruit touched')
 				end
 			end
@@ -159,7 +152,9 @@ scene:addEventListener( "show", scene )
 scene:addEventListener( "hide", scene )
 scene:addEventListener( "destroy", scene )
 Runtime:addEventListener( "touch", touch )
-Runtime:addEventListener("enterFrame", enterFrame)
+Runtime:addEventListener("enterFrame", scene)
+local collisions = require("collision")
+Runtime:addEventListener("collision",collisions.onCollision)
 -----------------------------------------------------------------------------------------
 
 return scene
