@@ -19,13 +19,12 @@ function displayedFruits()
 	end
 	return counter
 end
-
-
-function fruits.createFruit()
-	if displayedFruits() > 10 then
-		do return end
-	end 
-
+function fruits.addFruits(view)
+	for i = 1,10 do
+	 fruits.createFruit(view)
+	end
+end
+function fruits.createFruit(view)
 	local fruit = display.newImage( "blue.png" )
 	fruit.y =  40
 	fruit.x = math.random( 10,470)
@@ -39,6 +38,8 @@ function fruits.createFruit()
 	physics.addBody( pusk, "static", {density=0, friction=0.3, bounce=b, shape = {2,2,fruit.x, fruit.y -10} } )
 	puskJoint = physics.newJoint( "pivot", pusk,fruit, fruit.x ,fruit.y-10 )
 	fruits.puskJoints[fruit] = puskJoint
+	view:insert(fruit)
+	fruit.isDisplayed = true;
 end
 
 function fruits.refreshScene(view)
@@ -46,14 +47,7 @@ function fruits.refreshScene(view)
 	if math.random( ) > 0.95 then
 		fruits.createFruit()
 	end
-	for _,fruit in pairs(fruits.fruits) do
-		if not fruit.isDisplayed then
-			view:insert(fruit)
-			fruit.isDisplayed = true
-		end
-		if fruit.isDropped then 
-		end
+	if fruit.isDropped then 
 	end
-
 end
 return fruits

@@ -1,6 +1,6 @@
---------------------------------------------------------------------------------
---------- -- -- level1.lua -- --------------------------------------------------
----------------------------------------
+-----------------------------------------------------------------------------
+------------- level1.lua ----------------------------------------------------
+-----------------------------------------------------------------------------
 
 local composer = require( "composer" )
 local scene = composer.newScene()
@@ -63,8 +63,9 @@ end
 function scene:show( event )
 	local sceneGroup = self.view
 	local phase = event.phase
-	
+	print 'showing'
 	if phase == "will" then
+		fruits.addFruits(sceneGroup)
 		-- Called when the scene is still off screen and is about to move on screen
 	elseif phase == "did" then
 		-- Called when the scene is now on screen
@@ -76,6 +77,7 @@ function scene:show( event )
 end
 
 function scene:hide( event )
+	print 'hiding scene'
 	local sceneGroup = self.view
 	
 	local phase = event.phase
@@ -126,8 +128,8 @@ end
 ---------------------------------------------------------------------------------
 
 function scene:enterFrame(event)
-	fruits.refreshScene(self.view)
-	animals.update(self.view)
+	
+	animals.update(event,self.view)
 	if dragStart and dragEnd then
 		print "casting a ray"
 		local hits = physics.rayCast( dragStart.x,dragStart.y, dragEnd.x,dragEnd.y)
