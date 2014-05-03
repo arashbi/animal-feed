@@ -25,12 +25,20 @@ function Animal:_newStatus()
 	end
 end
 
+local function headCollision(self,event)
+    print "Head collision triggered"
+    if event.other.isFruit then
+      event.other:removeSelf()
+    end
+    
+end
+
 function Animal:_animate()
 	if not self:getAnimation().isPlaying then
 		-- self:getAnimation():play()
 	end
 	if self.state == Animal.WALKING then 
-		self.x = self.x + 1.5
+		self.x = self.x - 1.5
 		self.group.x = self.x
 	end
 end
@@ -38,7 +46,7 @@ function Animal:timer(event)
 	if math.random() > 0.1 then
 		print("changing the status" .. system.getTimer( ))
 		print ( "animal id " )
-		print ( self)
+		print (self)
 		print (self.type)
 		self:_newStatus()
 		print( "changed to " .. self.state)
@@ -93,5 +101,13 @@ function Sheep:getAnimation()
 end
 function Animal.newSheep(x,y)
 	local sheep = Sheep:New(x,y)
-	return sheep
+  sheep.accepts = false
+	local head = display.newCircle( 465, 235, 0)
+	head.isHead = true
+  
+	physics.addBody( head, "dynamic", {density=0.1, friction=0.1, bounce=0.4, radius = 20 } )
+	physics.addBody( sheep.group, "kinematic", {density=0.1, friction=0.1, bounce=0, shape ={-20,10,25,10,25,30,-20,30} } )
+	physics.newJoint( "weld", head,sheep, head.x,head.y )
+	head:addEventListener("collision",headCollision)
+  return sheep
 end

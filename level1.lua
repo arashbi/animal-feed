@@ -156,7 +156,7 @@ scene:addEventListener( "destroy", scene )
 Runtime:addEventListener( "touch", touch )
 Runtime:addEventListener("enterFrame", scene)
 local collisions = require("collision")
-Runtime:addEventListener("collision",collisions.onCollision)
+
 -----------------------------------------------------------------------------------------
 
 return scene

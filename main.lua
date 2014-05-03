@@ -3,7 +3,7 @@
 -- main.lua
 --
 -----------------------------------------------------------------------------------------
-
+require("mobdebug").start()
 -- hide the status bar
 display.setStatusBar( display.HiddenStatusBar )
 
